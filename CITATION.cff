@@ -1,8 +1,8 @@
 cff-version: 1.1.0
 message: "If you use this software, please cite it as below."
 authors:
-- family-names: Vaclav
-  given-names: Oujezsky
+- family-names: Oujezsky
+  given-names: Vaclav
 orcid: https://orcid.org/0000-0001-7629-6299
 title: Mutual Influence AI
 version: Manuscript
