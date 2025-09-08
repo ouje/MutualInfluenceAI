@@ -1,0 +1,13 @@
+# CITATION.cff
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Mutual Influence AI Demo"
+version: 0.1.0
+date-released: 2025-09-08
+authors:
+  - family-names: "Oujezsky"
+    given-names: "Vaclav"
+    affiliation: "Masaryk University"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+repository-code: "https://github.com/ouje/MutualInfluenceAI/"
+license: "MIT"
