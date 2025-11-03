@@ -1,3 +1,7 @@
 autogen-agentchat
 autogen-ext
 python-dotenv
+openai
+pandas
+numpy
+matplotlib
