@@ -298,7 +298,7 @@ async def main():
         for row in rows:
             writer.writerow({k: row.get(k, None) for k in fieldnames})
 
-    print(f"\nVýsledky uloženy do: {out_path}")
+    print(f"\nResults saved to: {out_path}")
 
 
 if __name__ == "__main__":

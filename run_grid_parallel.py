@@ -160,11 +160,11 @@ async def run_one(
                     w.writerow(short)
 
             if (idx + 1) % LOG_EVERY == 0:
-                print(f"✓ [{idx+1}/{total}] saved {key} -> "
+                print(f"[{idx+1}/{total}] saved {key} -> "
                       f"agr_inf={short['AgreementRate_influence']} "
                       f"r2={short['RoundsToApproval_influence']}")
         except Exception as e:
-            print(f"✗ [{idx+1}/{total}] ERROR for {key}: {e}")
+            print(f"[{idx+1}/{total}] ERROR for {key}: {e}")
 
 
 async def main():
