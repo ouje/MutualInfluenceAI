@@ -42,7 +42,7 @@ if not API_KEY:
 # ===========================
 # CONFIG
 # ===========================
-# Narrower defaults (fast) — adjust as needed:
+# Narrower defaults (fast) - this can be adjusted per needs:
 GRID = {
     "beta":  [0.2, 0.4, 0.6, 0.8],
     "k":     [3.0, 6.0],

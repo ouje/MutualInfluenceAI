@@ -41,7 +41,7 @@ API_KEY = os.getenv("OPENAI_API_KEY")
 if not API_KEY:
     raise RuntimeError("OPENAI_API_KEY is not set.")
 
-DEBUG_LOG = True  # vypni na False, až nebudeš ladit
+DEBUG_LOG = True  # False for production
 
 def _short(s: str, n: int = 800) -> str:
     if not isinstance(s, str):
@@ -58,9 +58,9 @@ def debug_dump(label: str, text: str):
         print(f"[parse] ❌ not valid JSON")
     else:
         try:
-            print(f"[parse] ✅ valid JSON with keys: {list(d.keys())[:8]}")
+            print(f"[parse] valid JSON with keys: {list(d.keys())[:8]}")
         except Exception:
-            print(f"[parse] ✅ valid JSON (non-dict)")
+            print(f"[parse] valid JSON (non-dict)")
 
 
 # ---- Prompts ---------------------------------------------------------------
@@ -89,8 +89,7 @@ Return:
 Task: [seed={seed}] List exactly 3 streaming features (names only) computable in real time for malware triage.
 Choose ONLY from this allowed set (use exact tokens): {_ALLOWED}.
 """,
-
-      # Kritika v baseline budeme volat s vloženými JSONy PLANNER/RESEARCHER
+      
       "critic_baseline": f"""{base_hint}
 Return exactly: {{ "decision": "APPROVE" or "REVISE" }}
 
@@ -123,7 +122,6 @@ List exactly 3 minimal streaming features we can compute now.
 Choose ONLY from this allowed set (use exact tokens): {_ALLOWED}.
 """,
 
-      # Kritika v influenced budeme volat s vloženými JSONy PLANNER/RESEARCHER
       "critic_influenced": f"""{base_hint}
 Return exactly: {{ "decision": "APPROVE" or "REVISE" }}
 
@@ -156,7 +154,7 @@ async def one_pass(beta=0.6, k=6.0, tau=0.5, alpha=0.8, seed=1, adversarial=Fals
     p1 = await planner.call(P["planner_baseline"], influenced=False)
     r1 = await researcher.call(P["researcher_baseline"], influenced=False)
 
-    # Kritika voláme s vloženými JSONy (aby mohl deterministicky rozhodnout)
+    # We call the critique with embedded JSONs (so that it can make a deterministic decision).
     c1_prompt = P["critic_baseline"] + f"\nPLANNER:\n{p1}\n\nRESEARCHER:\n{r1}\n"
     c1 = await critic.call(c1_prompt, influenced=False, base_temp=0.2)
 
@@ -179,7 +177,7 @@ async def one_pass(beta=0.6, k=6.0, tau=0.5, alpha=0.8, seed=1, adversarial=Fals
     critic.receive_feedback("researcher", 0.75 if not adversarial else 0.4, beta)
 
     # --- Round 2 (influenced) ---
-    # Vezmeme trojici RESEARCHERa z baseline a dáme ji plannerovi jako constraint
+    # We take the trio of RESEARCHERS from the baseline and give it to the planner as a constraint.
     RF1 = extract_features_from_json(r1)
     researcher_feats_str = ", ".join(sorted(RF1)) if RF1 else ""
     planner_infl_prompt = P["planner_influenced"]
@@ -192,7 +190,7 @@ async def one_pass(beta=0.6, k=6.0, tau=0.5, alpha=0.8, seed=1, adversarial=Fals
     p2 = await planner.call(planner_infl_prompt, influenced=True)
     r2 = await researcher.call(P["researcher_influenced"], influenced=True)
 
-    # Kritika v influenced opět s vloženými JSONy
+    # Criticism in influenced again with embedded JSONs
     c2_prompt = P["critic_influenced"] + f"\nPLANNER:\n{p2}\n\nRESEARCHER:\n{r2}\n"
     c2 = await critic.call(c2_prompt, influenced=True)
 
@@ -219,7 +217,7 @@ async def one_pass(beta=0.6, k=6.0, tau=0.5, alpha=0.8, seed=1, adversarial=Fals
     rA1 = 1 if dec1 == "APPROVE" else None
     rA2 = 1 if dec2 == "APPROVE" else None
 
-    # „hloubka revize“: kolik nových features přibylo (přes obě role)
+    # Depth of revision: how many new features were added (across both roles)
     revd = len((PF2 | RF2) - (PF1 | RF1))
 
     planner_researcher_can_baseline = canonical_overlap(p1, r1)
@@ -245,7 +243,7 @@ async def one_pass(beta=0.6, k=6.0, tau=0.5, alpha=0.8, seed=1, adversarial=Fals
         "Planner_SelfAgreement": None if planner_self_agree is None else round(planner_self_agree, 3),
         "Researcher_SelfAgreement": None if researcher_self_agree is None else round(researcher_self_agree, 3),
 
-        # surové odpovědi (kvůli auditu)
+        # Auditing info
         "planner_baseline": p1,
         "researcher_baseline": r1,
         "critic_baseline": c1,
@@ -263,11 +261,11 @@ GRID = {
     "tau":   [0.4, 0.5],
     "alpha": [0.4, 0.8, 1.2],
 }
-SEEDS = [1]  # SEEDS = [1, 2] for paper
+SEEDS = [1]  # SEEDS = [1, 2] 
 
 async def main():
     rows: List[Dict] = []
-    for adv in (False, True):  # normál + adversarial
+    for adv in (False, True):   
         for beta in GRID["beta"]:
             for k in GRID["k"]:
                 for tau in GRID["tau"]:
@@ -279,7 +277,7 @@ async def main():
                                                           "RoundsToApproval_baseline","RoundsToApproval_influence",
                                                           "AgreementRate_baseline","AgreementRate_influence",
                                                           "RevisionDepth_between_rounds")}
-                            print("✓", log)
+                            print("OK", log)
                             rows.append(out)
 
     # --- Save CSV (short metrics only) ---
